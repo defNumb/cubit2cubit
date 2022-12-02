@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'cubits/color/color_cubit.dart';
+import 'cubits/counter/counter_cubit.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,57 +14,71 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ColorCubit>(
+          create: (context) => ColorCubit(),
+        ),
+        BlocProvider<CounterCubit>(
+          create: (context) => CounterCubit(
+            colorCubit: context.read<ColorCubit>(),
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      backgroundColor: context.watch<ColorCubit>().state.color,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                context.read<ColorCubit>().changeColor();
+              },
+              child: Text(
+                'Change Color',
+                style: TextStyle(fontSize: 24.0),
+              ),
             ),
+            SizedBox(height: 20.0),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              '${context.watch<CounterCubit>().state.counter}',
+              style: TextStyle(
+                fontSize: 52.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: () {
+                context.read<CounterCubit>().changeCounter();
+              },
+              child: Text(
+                'Increment Counter',
+                style: TextStyle(
+                  fontSize: 24.0,
+                ),
+              ),
+            )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
